@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Camera</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f2f5;
+      padding: 20px;
+    }
+
+    h1 { color: #222; }
+
+    video, canvas {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      margin: 10px 0;
+    }
+
+    button, a {
+      display: inline-block;
+      padding: 12px 18px;
+      margin: 8px;
+      border: none;
+      border-radius: 8px;
+      background: #1769e0;
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #status { color: #444; }
+  </style>
+</head>
+<body>
+
+  <h1>📷 My Camera</h1>
+  <p>Allow camera access to take a photo.
+     Photos are not uploaded or sent anywhere.</p>
+
+  <video id="video" autoplay playsinline hidden></video>
+  <br>
+
+  <button id="start">Open Camera</button>
+  <button id="capture" hidden>Take Photo</button>
+
+  <p id="status"></p>
+
+  <canvas id="canvas" hidden></canvas>
+  <br>
+
+  <a id="download" hidden download="my-photo.png">
+    Download Photo
+  </a>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const start = document.getElementById("start");
+    const capture = document.getElementById("capture");
+    const download = document.getElementById("download");
+    const status = document.getElementById("status");
+
+    let stream;
+
+    start.onclick = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false
+        });
+
+        video.srcObject = stream;
+        video.hidden = false;
+        capture.hidden = false;
+        start.hidden = true;
+        status.textContent = "Camera is on. Take a photo when ready.";
+      } catch (error) {
+        status.textContent =
+          "Camera access denied or unavailable. Please check permissions.";
+      }
+    };
+
+    capture.onclick = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0);
+
+      canvas.hidden = false;
+      download.href = canvas.toDataURL("image/png");
+      download.hidden = false;
+
+      status.textContent = "Photo captured! You can preview and download it.";
+
+      stream.getTracks().forEach(track => track.stop());
+      video.hidden = true;
+      capture.hidden = true;
+      start.hidden = false;
+      start.textContent = "Open Camera Again";
+    };
+  </script>
+
+</body>
+</html>
